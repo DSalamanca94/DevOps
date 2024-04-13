@@ -5,13 +5,19 @@ from flask_jwt_extended import JWTManager, jwt_required, create_access_token
 import os
 from datetime import datetime
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tu_base_de_datos.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = 'tu_clave_secreta_jwt'
-db = SQLAlchemy(app)
-api = Api(app)
-jwt = JWTManager(app)
+db_user = 'postgres'
+db_pass = 'postgres'
+db_host = 'postgres-database-1.cva0gs2wmm1d.us-east-2.rds.amazonaws.com'
+db_port = 5432
+db_name = 'postgres'
+
+application  = Flask(__name__)
+application .config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}'
+application .config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+application .config['JWT_SECRET_KEY'] = 'tu_clave_secreta_jwt'
+db = SQLAlchemy(application )
+api = Api(application )
+jwt = JWTManager(application )
 
 class BlacklistEmail(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -48,11 +54,19 @@ class CheckBlacklist(Resource):
             return jsonify(is_blacklisted=True)
         else:
             return jsonify(is_blacklisted=False)
+        
 
+
+class HeltCheck(Resource):
+    def get(self):
+        return {"status":"Activado"},200
+
+
+api.add_resource(HeltCheck, '/health')
 api.add_resource(AddToBlacklist, '/blacklist')
 api.add_resource(CheckBlacklist, '/blacklist/<string:email>')
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+    # with application .app_context():
+    #     db.create_all()
+    application .run(port = 5000, debug = True)
